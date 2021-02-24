@@ -4,7 +4,7 @@
 #define A2D_H
 
 
-#define A2D_FILE "/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
+#define A2D_FILE "~/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
 
 
 
@@ -31,6 +31,7 @@ static int A2D_MAX = 4095;
 static int current_voltage  = 0;
 static int endThread = 0;
 static int curr_array_size = 0;
+
 static pthread_mutex_t array_size_mutex;
 static pthread_mutex_t end_thread_mutex;
 static pthread_mutex_t voltage_mutex;
@@ -38,7 +39,7 @@ static pthread_mutex_t file_mutex;
 
 void init(void);
 
-void readVoltage0(void*);
+void readVoltage0(void);
 
 void setCurrentVoltage(int curr);
 
@@ -56,7 +57,9 @@ int getArraySize(void);
 
 
 int readVolt(void);
+
 int PWLArraySize(int volt);
+
 float getY(float x);
 
 #endif

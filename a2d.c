@@ -18,7 +18,7 @@ void a2d(void){
     setEndThread(0);
     pthread_create(&thread_id, NULL, startThread, (void*)&thread_id);    
     while(endThread = 0){
-        readVoltage0(( (void *) thread_id));
+        readVoltage0();
     }
     printf("Ending A2D thread");
     // int *ptr;
@@ -78,40 +78,39 @@ float getY(float x){
 
 void setArraySize(int curr_arr){
     pthread_mutex_lock(&array_size_mutex);
-    curr_array_size = curr_arr;
+    {
+        curr_array_size = curr_arr;
+    }
     pthread_mutex_unlock(&array_size_mutex);
 
 }
 
-int getArraySize(void){
-    pthread_mutex_lock(&array_size_mutex);
+int getArraySize(void){    
     return curr_array_size;
-    pthread_mutex_unlock(&array_size_mutex);
-
 }
 
 void setCurrentVoltage(int curr){
     pthread_mutex_lock(&voltage_mutex);
-    current_voltage = curr;
+    {
+        current_voltage = curr;
+    }
     pthread_mutex_unlock(&voltage_mutex);
 }
 
 int getCurrentVoltage(void){
-    pthread_mutex_lock(&voltage_mutex);
     return current_voltage;
-    pthread_mutex_unlock(&voltage_mutex);
 }
 
 void setEndThread(int val){
     pthread_mutex_lock(&end_thread_mutex);
-    endThread = val;
+    {
+        endThread = val;
+    }
     pthread_mutex_unlock(&end_thread_mutex);
 }
 
 int getEndThread(void){
-    pthread_mutex_lock(&end_thread_mutex);
     return endThread;
-    pthread_mutex_unlock(&end_thread_mutex);
 }
 
 int readVolt(void){
