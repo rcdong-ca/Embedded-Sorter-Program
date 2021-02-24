@@ -2,9 +2,6 @@
 #include "a2d.h"
 #include "sort.h"
 
-#include <pthread.h>
-#include <stdio.h>
-#include <math.h>
 
 
 void a2d(void){
@@ -15,15 +12,7 @@ void a2d(void){
     pthread_mutex_init(&voltage_mutex, NULL);
     pthread_mutex_init(&file_mutex, NULL);
     
-    setEndThread(0);
-    pthread_create(&thread_id, NULL, startThread, (void*)&thread_id);    
-    while(endThread = 0){
-        readVoltage0();
-    }
-    printf("Ending A2D thread");
-    // int *ptr;
-    pthread_join(thread_id, NULL);
-    
+    pthread_create(&thread_id, NULL, startThread, (void*)&thread_id);     
 
     pthread_mutex_destroy(&array_size_mutex);
     pthread_mutex_destroy(&end_thread_mutex);
@@ -34,8 +23,15 @@ void a2d(void){
     //May need to make ptr = nulll and destroy ptr
 }
 
-void startThread(void* id){
-    printf("Starting A2D thread %d to read Potentiometer", (int*) id);
+void* startThread(void* id){
+    printf("Starting A2D thread to read Potentiometer\n");
+    setEndThread(0);
+    while(endThread == 0){
+        readVoltage0();
+    }
+    printf("Ending A2D thread\n");
+    pthread_exit(NULL);
+    return NULL;
 }
 
 void readVoltage0(void){
@@ -133,4 +129,8 @@ int readVolt(void){
     fclose(f);
     return a2dReading;
     pthread_mutex_unlock(&file_mutex);
+}
+int main(){
+    a2d();
+    return 0;
 }

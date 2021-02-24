@@ -1,4 +1,8 @@
 
+#include <pthread.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 
 #ifndef A2D_H
 #define A2D_H
@@ -61,5 +65,7 @@ int readVolt(void);
 int PWLArraySize(int volt);
 
 float getY(float x);
+
+void* startThread(void* id);
 
 #endif
