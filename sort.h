@@ -3,7 +3,7 @@
 //for now default the len to 100, it will be changed later
 
 // Begin/end the background thread which sorts random permutations.
-void Sorter_startSorting(void);
+void* Sorter_startSorting(void* t);
 void Sorter_stopSorting(void);
 
 // Get the size of the array currently being sorted.
