@@ -74,39 +74,43 @@ float getY(float x){
 
 void setArraySize(int curr_arr){
     pthread_mutex_lock(&array_size_mutex);
-    {
         curr_array_size = curr_arr;
-    }
     pthread_mutex_unlock(&array_size_mutex);
 
 }
 
 int getArraySize(void){    
-    return curr_array_size;
+    pthread_mutex_lock(&array_size_mutex);
+        int ret =  curr_array_size;
+    pthread_mutex_unlock(&array_size_mutex);
+
+    return ret;
 }
 
 void setCurrentVoltage(int curr){
     pthread_mutex_lock(&voltage_mutex);
-    {
         current_voltage = curr;
-    }
     pthread_mutex_unlock(&voltage_mutex);
 }
 
 int getCurrentVoltage(void){
-    return current_voltage;
+    pthread_mutex_lock(&voltage_mutex);
+        int ret =  current_voltage;
+    pthread_mutex_unlock(&voltage_mutex);
+    return ret;
 }
 
 void setEndThread(int val){
     pthread_mutex_lock(&end_thread_mutex);
-    {
         endThread = val;
-    }
     pthread_mutex_unlock(&end_thread_mutex);
 }
 
 int getEndThread(void){
-    return endThread;
+    pthread_mutex_lock(&end_thread_mutex);
+        int ret = endThread;
+    pthread_mutex_unlock(&end_thread_mutex);
+    return ret;
 }
 
 int readVolt(void){
