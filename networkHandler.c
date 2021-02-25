@@ -45,7 +45,7 @@ int get_length_command(char* snd_buff) {
 int get_array_command(char* snd_buff) {
     int res_len =0;
     int* res_arr = Sorter_getArrayData(&res_len);
-    printf("res_len =%d \n", res_len);
+    // printf("res_len =%d \n", res_len);
     int index = 0;
     int i=0;
     for (i =0; i<res_len-1; i++) {          //REFACTOR: INCOMING IS GREATER THAN BUFF SIZE
@@ -58,7 +58,10 @@ int get_array_command(char* snd_buff) {
     //     exit(1);
     // }
     // free( (int**)res_arr );
+    
     // res_arr = NULL;
+    free(res_arr);
+    res_arr = NULL;
     return index; 
 }
 
@@ -147,7 +150,7 @@ void* StartReceive(void* t) {
         //printf("msg received: %s:\n ", recv_buffer);
         printf("msg_len = %d\n", msg_len);
         int send_len = handle_packet(recv_buffer,send_buffer, msg_len);
-        printf("test3\n");
+        // printf("test3\n");
         if (send_len <0) {
             stop_flag = send_len;
             send_len*=-1;
@@ -156,7 +159,7 @@ void* StartReceive(void* t) {
         int end = MAX_PACK_SIZE-1;
         int start = 0;
 
-        printf("send buyffer = %s\n", send_buffer);
+        printf("send buffer = %s\n", send_buffer);
         while (send_len > MAX_PACK_SIZE) { //only fthe get array command
             while (send_buffer[end]!=',' && end!=start) {       //end of number
                 end--;
@@ -170,9 +173,9 @@ void* StartReceive(void* t) {
             end = start + MAX_PACK_SIZE-1;
             printf("Next packet\n!");
         }
-        printf("Sending the last packet\n");
+        // printf("Sending the last packet\n");
         strncpy(send_msg, send_buffer + start, start + send_len);
-        printf("send msg %s\n",send_msg);
+        // printf("send msg %s\n",send_msg);
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
 
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
@@ -187,7 +190,7 @@ int main() {
     pthread_t sort_thread;
     pthread_t network_thread;
     pthread_t a2d_thread;
-    printf("initiate sorth funtions\n");
+    printf("initiate sort funtions\n");
     pthread_create(&a2d_thread, NULL, a2d, NULL);
     pthread_create(&sort_thread, NULL, Sorter_startSorting, NULL);
     pthread_create(&network_thread, NULL, StartReceive, NULL);

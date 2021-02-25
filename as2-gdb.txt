@@ -1,0 +1,103 @@
+saqib@saqib-OMEN-by-HP-Laptop:~/Documents/Spring 2021/CMPT433/as2/cmpt433_as2$ gdb-multiarch noworkyGNU gdb (Ubuntu 9.2-0ubuntu1~20.04) 9.2
+Copyright (C) 2020 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from noworky...
+(gdb) target remote 192.168.7.2:2001
+Remote debugging using 192.168.7.2:2001
+Reading /lib/ld-linux-armhf.so.3 from remote target...
+warning: File transfers from remote targets can be slow. Use "set sysroot" to access files locally instead.
+Reading /lib/ld-linux-armhf.so.3 from remote target...
+Reading symbols from target:/lib/ld-linux-armhf.so.3...
+Reading /lib/70015c44595ec80804b8d64a043df0d899dfae.debug from remote target...
+Reading /lib/.debug/70015c44595ec80804b8d64a043df0d899dfae.debug from remote target...
+Reading /usr/lib/debug//lib/70015c44595ec80804b8d64a043df0d899dfae.debug from remote target...
+Reading /usr/lib/debug/lib//70015c44595ec80804b8d64a043df0d899dfae.debug from remote target...
+Reading target:/usr/lib/debug/lib//70015c44595ec80804b8d64a043df0d899dfae.debug from remote target...
+(No debugging symbols found in target:/lib/ld-linux-armhf.so.3)
+0xb6fd7980 in ?? () from target:/lib/ld-linux-armhf.so.3
+(gdb) continue
+Continuing.
+Reading /lib/arm-linux-gnueabihf/libc.so.6 from remote target...
+Reading /lib/arm-linux-gnueabihf/56da1a1f1ec6abc2396f88e61efb139d91c6dc.debug from remote target...
+Reading /lib/arm-linux-gnueabihf/.debug/56da1a1f1ec6abc2396f88e61efb139d91c6dc.debug from remote target...
+Reading /usr/lib/debug//lib/arm-linux-gnueabihf/56da1a1f1ec6abc2396f88e61efb139d91c6dc.debug from remote target...
+Reading /usr/lib/debug/lib/arm-linux-gnueabihf//56da1a1f1ec6abc2396f88e61efb139d91c6dc.debug from remote target...
+Reading target:/usr/lib/debug/lib/arm-linux-gnueabihf//56da1a1f1ec6abc2396f88e61efb139d91c6dc.debug from remote target...
+
+Program received signal SIGSEGV, Segmentation fault.
+0x004005b6 in swapContent (d1=0x410ff8, d2=0x411050) at noworky.c:19
+19              *d1 = tmp;
+(gdb) bt
+#0  0x004005b6 in swapContent (d1=0x410ff8, d2=0x411050) at noworky.c:19
+#1  0x004005ee in tradeArrays (array1=0x412410, array2=0x412468, size=10) at noworky.c:33
+#2  0x004006f2 in main () at noworky.c:76
+(gdb) f 0
+#0  0x004005b6 in swapContent (d1=0x410ff8, d2=0x411050) at noworky.c:19
+19              *d1 = tmp;
+(gdb) f 1
+#1  0x004005ee in tradeArrays (array1=0x412410, array2=0x412468, size=10) at noworky.c:33
+33                      swapContent(array1+i, array2+i);
+(gdb) print size
+$1 = 10
+(gdb) print size -1
+$2 = 9
+(gdb) print i
+$3 = 4294966653
+(gdb) quit
+A debugging session is active.
+
+        Inferior 1 [process 3539] will be killed.
+
+Quit anyway? (y or n) y
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+debian@sdhuka-beagle:/mnt/remote/myApps$ gdbserver localhost:2001 noworky 
+Process noworky created; pid = 3539
+Listening on port 2001
+Remote debugging from host 192.168.7.1
+noworky: by Brian Fraser
+Initial values: 
+  0: 000.0 --> 000.0
+  1: 002.0 --> 010.0
+  2: 004.0 --> 020.0
+  3: 006.0 --> 030.0
+  4: 008.0 --> 040.0
+  5: 010.0 --> 050.0
+  6: 012.0 --> 060.0
+  7: 014.0 --> 070.0
+  8: 016.0 --> 080.0
+  9: 018.0 --> 090.0
+
+
+
+

@@ -7,6 +7,7 @@
 #include "a2d.h"
 
 #define MAXLEN 2048
+static int first =0;
 
 //TODO add mutex for all shared variables
 
@@ -20,6 +21,7 @@ static long long count = 0;
 static int next_arr_len;
 static bool sort_flag = true;
 static int* main_arr = NULL;
+static int* dup_arr = NULL;
 
 void increase_count() {
     pthread_mutex_lock(&count_mutex);
@@ -77,7 +79,7 @@ int get_arr_len() {
     pthread_mutex_lock(&arr_len_mutex);
     int val = arr_len;
     pthread_mutex_unlock(&arr_len_mutex);
-    printf("Sortc: array_len = %d\n", val);
+    // printf("Sortc: array_len = %d\n", val);
     return val;
 }
 
@@ -116,7 +118,7 @@ void permutation(int* arr, int len) {
 }
 
 void sort_thread_task() {
-    int c = 0;
+    // int c = 0;
     while (get_sort_flag() ) {
         set_arr_len();
         int cur_arr_len = get_arr_len();
@@ -126,7 +128,7 @@ void sort_thread_task() {
             main_arr[i] = i;
         }
         pthread_mutex_unlock(&array_mutex);
-        printf("c = %d\n", c);
+        // printf("c = %d\n", c);
         //Sorting the array with current length
         while ( get_sort_flag() && compare_arr_len(cur_arr_len)) {
             permutation(main_arr, cur_arr_len);
@@ -181,12 +183,20 @@ int Sorter_getArrayLength(void) {
 
 int* Sorter_getArrayData(int *length) {
     *length = arr_len;
-    int* dup_arr = (int*)malloc(sizeof(int) * arr_len);
+    dup_arr = (int*)malloc(sizeof(int) * arr_len);
+    if(first == 0){
+        first = 1;
+    }else{
+        // free(dup_arr);
+        dup_arr = (int*)realloc(dup_arr, sizeof(int) * arr_len);
+    }
+
     pthread_mutex_lock(&array_mutex);
     for (int i =0; i<arr_len; i++) {
         dup_arr[i] = main_arr[i];
     }
     pthread_mutex_unlock(&array_mutex);
+
     return dup_arr;
 }
 
