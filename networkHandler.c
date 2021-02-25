@@ -141,13 +141,13 @@ void* StartReceive(void* t) {
     char* send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
     while(stop_flag >-1) { //have a flag set here to cancel this thread when done
         target_struct_len = sizeof(target_addr);
-        printf("waiting for packets on port %d....\n", PORT);
+        //printf("waiting for packets on port %d....\n", PORT);
         int msg_len = recvfrom(sock_fd, (char *)recv_buffer, MAX_BUFF_SIZE, 0, 
                 (struct sockaddr*)&target_addr, &target_struct_len);
         //printf("msg received: %s:\n ", recv_buffer);
-        printf("msg_len = %d\n", msg_len);
+        //printf("msg_len = %d\n", msg_len);
         int send_len = handle_packet(recv_buffer,send_buffer, msg_len);
-        printf("test3\n");
+        //printf("test3\n");
         if (send_len <0) {
             stop_flag = send_len;
             send_len*=-1;
@@ -157,13 +157,14 @@ void* StartReceive(void* t) {
         int start = 0;
 
         printf("send buyffer = %s\n", send_buffer);
+        //TODO: line 171 valgrind errors, mostl likely math wron
         while (send_len > MAX_PACK_SIZE) { //only fthe get array command
             while (send_buffer[end]!=',' && end!=start) {       //end of number
                 end--;
             }
             end+=1;
             strncpy(send_msg, send_buffer + start, end - start);
-            printf("send mssage_in = %s\n", send_msg);
+            //printf("send mssage_in = %s\n", send_msg);
             sendto(sock_fd, send_msg, end - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
             send_len = send_len - (end -start);
             start = end;
@@ -172,7 +173,7 @@ void* StartReceive(void* t) {
         }
         printf("Sending the last packet\n");
         strncpy(send_msg, send_buffer + start, start + send_len);
-        printf("send msg %s\n",send_msg);
+        //printf("send msg %s\n",send_msg);
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
 
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
