@@ -8,8 +8,8 @@ CFLAGS = -Wall -g -std=c99 -D_POSIX_C_SOURCE=200809L -Werror
 all: main
 	cp udp_test ~/cmpt433/public/myApps/
 
-main: networkHandler.c networkHandler.h sort.c sort.h
-	$(CC_C) $(CFLAGS) networkHandler.c sort.c -pthread -o udp_test
+main: networkHandler.c networkHandler.h sort.c sort.h a2d.c a2d.h
+	$(CC_C) $(CFLAGS) networkHandler.c sort.c a2d.c -pthread -lm -o udp_test
 
 
 clean: 

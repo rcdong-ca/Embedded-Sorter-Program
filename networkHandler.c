@@ -8,6 +8,8 @@
 #include <ctype.h>
 
 #include "sort.h"
+#include "a2d.h"
+
 #define PORT 12345
 #define MAX_BUFF_SIZE 1024
 #define MAX_PACK_SIZE 1024
@@ -42,20 +44,24 @@ int get_array_command(char* snd_buff) {
     int res_len =0;
     int* res_arr = Sorter_getArrayData(&res_len);
     int index = 0;
-    for (int i =0; i<res_len-1; i++) {
+    int i=0;
+    for (i =0; i<res_len-1 && i < MAX_PACK_SIZE-1; i++) {
         index+=sprintf(snd_buff + index, "%d,", res_arr[i]);
     }
-    index+=sprintf(snd_buff + index, "%d", res_arr[res_len-1]);
+    index+=sprintf(snd_buff + index, "%d", res_arr[i]);
     printf("res_len = %d   index = %d\n", res_len, index);
     // if (res_len!=index) {
     //     perror("GET_ARRAY_COMMAND erorr: saved arraylen != array len");
     //     exit(1);
     // }
+    free(res_arr);
+    res_arr=NULL;
     return index; 
 }
 
 int stop_command(char* snd_buff) {
     Sorter_stopSorting();
+    stopA2DThread();
     return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating");
 }
 
@@ -129,6 +135,7 @@ void* StartReceive(void* t) {
 
     socklen_t target_struct_len;
     int stop_flag = 0;
+    char* send_msg;
     while(stop_flag >-1) { //have a flag set here to cancel this thread when done
         target_struct_len = sizeof(target_addr);
         printf("waiting for packets on port %d....\n", PORT);
@@ -143,7 +150,7 @@ void* StartReceive(void* t) {
         //design choice: first byte 1 or 0. 1: more packet. 0: last packet
         int end = MAX_PACK_SIZE-1;
         int start = 0;
-        char* send_msg = malloc(sizeof(char)*MAX_PACK_SIZE);
+        send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
         printf("send buyffer = %s\n", send_buffer);
         while (send_len > MAX_PACK_SIZE) { //only fthe get array command
             send_msg[0] = '1';
@@ -165,6 +172,7 @@ void* StartReceive(void* t) {
         free(send_msg);
         send_msg = NULL;
     }
+
     printf("networkprogram ends\n");
     pthread_exit(NULL);
 }
@@ -172,9 +180,12 @@ void* StartReceive(void* t) {
 int main() {
     pthread_t sort_thread;
     pthread_t network_thread;
+    pthread_t a2d_thread;
     printf("initiate sorth funtions\n");
+    pthread_create(&a2d_thread, NULL, a2d, NULL);
     pthread_create(&sort_thread, NULL, Sorter_startSorting, NULL);
     pthread_create(&network_thread, NULL, StartReceive, NULL);
+    pthread_join(a2d_thread, NULL);
     pthread_join(sort_thread, NULL);
     pthread_join(network_thread, NULL);
     printf("main program ends\n");

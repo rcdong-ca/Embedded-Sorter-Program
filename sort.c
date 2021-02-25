@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "sort.h"
+#include "a2d.h"
 
 #define MAXLEN 100
 
@@ -95,7 +96,7 @@ void BubbleSort(int arr[], int len) {
             }
             //receive notice to stop the sort!
             {
-                if (get_sort_flag()==false) {
+                if (get_sort_flag()==false || compare_arr_len(len) == false) {
                     break;
                 }
             }
@@ -130,10 +131,12 @@ void sort_thread_task() {
             BubbleSort(main_arr, cur_arr_len);
             increase_count();
         } 
+        free(main_arr);
+        main_arr = NULL; 
     }
 }
 void* Sorter_startSorting(void* t) {
-    next_arr_len = MAXLEN; //TO CHANGE
+    next_arr_len = Sorter_getArrayLength(); //TO CHANGE
     pthread_mutex_init(&array_mutex, NULL);
     pthread_mutex_init(&next_arr_len_mutex, NULL);
     pthread_mutex_init(&sort_flag_mutex, NULL);
