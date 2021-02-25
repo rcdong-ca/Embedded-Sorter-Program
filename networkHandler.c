@@ -11,7 +11,7 @@
 #include "a2d.h"
 
 #define PORT 12345
-#define MAX_BUFF_SIZE 1024
+#define MAX_BUFF_SIZE 65000
 #define MAX_PACK_SIZE 1024
 
 int help_command(char* snd_buffer) {
@@ -43,9 +43,10 @@ int get_length_command(char* snd_buff) {
 int get_array_command(char* snd_buff) {
     int res_len =0;
     int* res_arr = Sorter_getArrayData(&res_len);
+    printf("res_len =%d \n", res_len);
     int index = 0;
     int i=0;
-    for (i =0; i<res_len-1 && i < MAX_PACK_SIZE-1; i++) {
+    for (i =0; i<res_len-1; i++) {          //REFACTOR: INCOMING IS GREATER THAN BUFF SIZE
         index+=sprintf(snd_buff + index, "%d,", res_arr[i]);
     }
     index+=sprintf(snd_buff + index, "%d", res_arr[i]);
@@ -153,26 +154,24 @@ void* StartReceive(void* t) {
         send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
         printf("send buyffer = %s\n", send_buffer);
         while (send_len > MAX_PACK_SIZE) { //only fthe get array command
-            send_msg[0] = '1';
             while (send_buffer[end]!=',' && end!=start) {       //end of number
                 end--;
             }
-            strncpy(send_msg+1, send_buffer + start, end);
+            end+=1;
+            strncpy(send_msg, send_buffer + start, end - start);
             printf("send mssage_in = %s\n", send_msg);
-            sendto(sock_fd, send_msg, end+1 - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
-            send_len-=end;
+            sendto(sock_fd, send_msg, end - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
+            send_len = send_len - (end -start);
             start = end;
             end = start + MAX_PACK_SIZE-1;
+            printf("Next packet\n!");
         }
-        send_msg[0]= '0';
-        strncpy(send_msg+1, send_buffer + start, start + send_len);
+        printf("Sending the last packet\n");
+        strncpy(send_msg, send_buffer + start, start + send_len);
         printf("send msg %s\n",send_msg);
-        sendto(sock_fd, send_msg, send_len+1 - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
-        
-        free(send_msg);
-        send_msg = NULL;
+        sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
+        printf("going to free the array\n");
     }
-
     printf("networkprogram ends\n");
     pthread_exit(NULL);
 }

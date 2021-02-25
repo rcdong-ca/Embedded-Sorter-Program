@@ -6,7 +6,7 @@
 #include "sort.h"
 #include "a2d.h"
 
-#define MAXLEN 100
+#define MAXLEN 2048
 
 //TODO add mutex for all shared variables
 
@@ -96,7 +96,7 @@ void BubbleSort(int arr[], int len) {
             }
             //receive notice to stop the sort!
             {
-                if (get_sort_flag()==false || compare_arr_len(len) == false) {
+                if (get_sort_flag()==false && compare_arr_len(len)==false ) {
                     break;
                 }
             }
@@ -115,6 +115,7 @@ void permutation(int* arr, int len) {
 }
 
 void sort_thread_task() {
+    int c = 0;
     while (get_sort_flag() ) {
         set_arr_len();
         int cur_arr_len = get_arr_len();
@@ -124,7 +125,7 @@ void sort_thread_task() {
             main_arr[i] = i;
         }
         pthread_mutex_unlock(&array_mutex);
-
+        printf("c = %d\n", c);
         //Sorting the array with current length
         while ( get_sort_flag() && compare_arr_len(cur_arr_len)) {
             permutation(main_arr, cur_arr_len);
