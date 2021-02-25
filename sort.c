@@ -77,6 +77,7 @@ int get_arr_len() {
     pthread_mutex_lock(&arr_len_mutex);
     int val = arr_len;
     pthread_mutex_unlock(&arr_len_mutex);
+    printf("Sortc: array_len = %d\n", val);
     return val;
 }
 
