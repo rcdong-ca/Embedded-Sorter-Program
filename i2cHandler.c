@@ -108,15 +108,16 @@ static void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char va
 void* display_number(void* fd) {
     int i2c_fd = (int)fd;
     long long curr_count = get_count2();
-    int prev_count = 0;
+    long long temp = curr_count;
+    long long prev_count = 0;
     int left_n = 0;
     int right_n = 0;
     time_t start;
     start = time(NULL);
-    printf("leftn = %d, rightn = %d\n", left_n, right_n);
+    // printf("leftn = %d, rightn = %d\n", left_n, right_n);
     while(get_exit_flag()==1) {
         start = time(NULL);
-        while ( time(NULL) - start< 1.0) {             //TODO: flag for exiting thread
+        while ( time(NULL) - start < 5.0) {             //TODO: flag for exiting thread
             if (curr_count > 99) 
                 curr_count = 99;
             left_n = (int)curr_count / 10;
@@ -135,9 +136,16 @@ void* display_number(void* fd) {
             sleep(0.001);
             //printf("time = %lf\n", (double)((end - start)/CLOCKS_PER_SEC));
         }
-        prev_count = curr_count;
-        curr_count = get_count2() - prev_count;
-        //printf("currr_count = %d\n", (int)curr_count);
+        // prev_count = curr_count;
+        // curr_count = get_count2() - prev_count;
+        if(prev_count > get_count2()){
+            prev_count = temp;
+            curr_count = 0;
+        }else{
+            prev_count = temp;
+            curr_count = get_count2() - prev_count;
+        }
+        printf("currr_count = %d, prev_count = %d\n", (int)curr_count, (int)prev_count);
     }
     pthread_exit(NULL);
 }
@@ -168,7 +176,7 @@ void* Start_i2c_thread(void*t) {
         //set_count2(0);
         curr_count = Sorter_getNumberArraysSorted();
         set_count2(curr_count);
-        sleep(10);
+        sleep(1);
         
         //printf("curr_count = %d\n", curr_count);
     }
