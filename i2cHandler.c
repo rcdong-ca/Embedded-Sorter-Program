@@ -114,10 +114,9 @@ void* display_number(void* fd) {
     int right_n = 0;
     time_t start;
     start = time(NULL);
-    // printf("leftn = %d, rightn = %d\n", left_n, right_n);
     while(get_exit_flag()==1) {
         start = time(NULL);
-        while ( time(NULL) - start < 1.0) {             //TODO: flag for exiting thread
+        while ( time(NULL) - start < 1.0) {  
             if (temp > 99) 
                 temp = 99;
             left_n = (int)temp / 10;
@@ -134,7 +133,6 @@ void* display_number(void* fd) {
             writeI2cReg(i2c_fd, REG_OUTB, top_num[right_n]);
             set_GPIO_pin(44,1);
             sleep(0.001);
-            //printf("time = %lf\n", (double)((end - start)/CLOCKS_PER_SEC));
         }
         int val = get_count2();
         prev_count = curr_count;
@@ -145,35 +143,30 @@ void* display_number(void* fd) {
     pthread_exit(NULL);
 }
 
-void* Start_i2c_thread(void*t) {
+void configure_pin(void){
     system("config-pin P9_18 i2c");
     system("config-pin P9_17 i2c");
     system("echo 61 > /sys/class/gpio/export");
     system("echo 44 > /sys/class/gpio/export");
     system("echo out > /sys/class/gpio/gpio61/direction");
     system("echo out > /sys/class/gpio/gpio44/direction");
-    //printf("Drive display (assumes GPIO #61 and #44 are output and 1\n");
-    int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
-    writeI2cReg(i2cFileDesc, REG_DIRA, 0x00); //  
-    writeI2cReg(i2cFileDesc, REG_DIRB, 0x00); //sets devuce to be output on all pins
+}
 
-    // set_GPIO_pin(44, 1);
-    // set_GPIO_pin(61, 1);
-    // writeI2cReg(i2cFileDesc, REG_OUTA, 0x2A);
-    // writeI2cReg(i2cFileDesc, REG_OUTB, 0x54);
+void* Start_i2c_thread(void*t) {
+    configure_pin();
+    int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
+    writeI2cReg(i2cFileDesc, REG_DIRA, 0x00); 
+    writeI2cReg(i2cFileDesc, REG_DIRB, 0x00);
     pthread_mutex_init(&count_mutex, NULL);
     pthread_mutex_init(&exit_flag_mutex, NULL);
     pthread_create(&display_thread, NULL, display_number, (void*)i2cFileDesc);
 
-    int curr_count =1;
+    int curr_count = 1;
     
     while (get_exit_flag()==1) {
-        //set_count2(0);
         curr_count = Sorter_getNumberArraysSorted();
         set_count2(curr_count);
         sleep(1);
-        
-        //printf("curr_count = %d\n", curr_count);
     }
     pthread_join(display_thread, NULL);
     printf("Exiting i2c handler program\n");

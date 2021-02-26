@@ -19,31 +19,31 @@ static int* res_arr;
 
 int help_command(char* snd_buffer) {
     printf("TEST1\n");
-    sprintf(snd_buffer, "Accepted command examples:\
+    sprintf(snd_buffer, "Accepted command examples:\n\
             count       -- display number arrays sorted.\n\
             get length  -- display lenght of array currently being sorted.\n\
             get array   -- display the full array being sorted.\n\
             get 10      -- display the tenth element of array currently being sorted.\n\
-            stop        -- cause the server program to end.\n");
-    printf("TEST2\n");
+            stop        -- cause the server program to end.\n\n");
+    // printf("TEST2\n");
     return strlen(snd_buffer);
 }
 
 int count_command(char* snd_buff) {
-    return sprintf(snd_buff, "%lld", Sorter_getNumberArraysSorted() ); //return the length of the long long
+    return sprintf(snd_buff, "%lld\n", Sorter_getNumberArraysSorted() ); //return the length of the long long
 }
 
 int get_n_command(char* snd_buff, int n) {
     int val = Sorter_getArray_Value(n);
     if (val < 0) {
         return snprintf(snd_buff, MAX_BUFF_SIZE,
-                "Invalid Argument. Must be between 1 and %d (array length).", val*-1);
+                "Invalid Argument. Must be between 1 and %d (array length).\n", val*-1);
     }
-    return snprintf(snd_buff, MAX_BUFF_SIZE,"Value %d = %d", n, val);
+    return snprintf(snd_buff, MAX_BUFF_SIZE,"Value %d = %d\n", n, val);
 }
 
 int get_length_command(char* snd_buff) {
-    return sprintf(snd_buff, "%d", Sorter_getArrayLength() ) ;
+    return sprintf(snd_buff, "%d\n", Sorter_getArrayLength() ) ;
 }
 int get_array_command(char* snd_buff) {
     int res_len =0;
@@ -56,15 +56,6 @@ int get_array_command(char* snd_buff) {
     }
     index+=sprintf(snd_buff + index, "%d", res_arr[i]);
     printf("res_len = %d   index = %d\n", res_len, index);
-    // if (res_len!=index) {
-    //     perror("GET_ARRAY_COMMAND erorr: saved arraylen != array len");
-    //     exit(1);
-    // }
-    // free( (int**)res_arr );
-    
-    // res_arr = NULL;
-    // free(res_arr);
-    // res_arr = NULL;
     return index; 
 }
 
@@ -74,32 +65,25 @@ int stop_command(char* snd_buff) {
     stop_i2c();
     free(res_arr);
     res_arr = NULL;
-    return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating");
+    return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating\n");
 }
 
 int handle_packet(char recv_buffer[], char snd_buffer[], int msg_len) {
-    //case 1: help command
     int snd_len =0;
     if (strncmp(recv_buffer, "help\n", msg_len) ==0 ) {
-        printf("1\n");
-        snd_len= help_command(snd_buffer);
-        
+        snd_len= help_command(snd_buffer);        
     }
     else if (strncmp(recv_buffer, "count\n", msg_len)==0)
     {
-        //printf("2\n");
         snd_len= count_command(snd_buffer);
     }
     else if (strncmp(recv_buffer, "get length\n", msg_len)==0) {
-        //printf("3\n");
         snd_len =  get_length_command(snd_buffer);
     }
     else if (strncmp(recv_buffer, "get array\n", msg_len)==0) {
-        printf("4\n");
         snd_len= get_array_command(snd_buffer); 
     }
     else if (strncmp(recv_buffer, "stop\n", msg_len) ==0) {
-        //printf("5\n");
         snd_len= stop_command(snd_buffer);
     }
     else {
@@ -116,8 +100,6 @@ int handle_packet(char recv_buffer[], char snd_buffer[], int msg_len) {
                 return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help\n");
             }
         }
-        // recv_buffer[msg_len] = "\0";
-        //printf("%s is valid command\n", recv_buffer);
         //it is a valid command:
         int val = (int)strtol( recv_buffer+4, (char **)NULL, 10);
         snd_len = get_n_command(snd_buffer, val);
@@ -137,7 +119,6 @@ void* StartReceive(void* t) {
         exit(-1);
     }
     memset(&target_addr, 0, sizeof(target_addr));
-    //memset(&target_addr, 0, sizeof(target_addr));
 
     target_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     target_addr.sin_port = htons(PORT);
@@ -150,11 +131,10 @@ void* StartReceive(void* t) {
     char* send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
     while(stop_flag >-1) { //have a flag set here to cancel this thread when done
         target_struct_len = sizeof(target_addr);
-        //printf("waiting for packets on port %d....\n", PORT);
+        printf("waiting for packets on port %d....\n", PORT);
         int msg_len = recvfrom(sock_fd, (char *)recv_buffer, MAX_BUFF_SIZE, 0, 
                 (struct sockaddr*)&target_addr, &target_struct_len);
-        //printf("msg received: %s:\n ", recv_buffer);
-        //printf("msg_len = %d\n", msg_len);
+    
         int send_len = handle_packet(recv_buffer,send_buffer, msg_len);
         if (send_len <0) {
             stop_flag = send_len;
@@ -173,7 +153,6 @@ void* StartReceive(void* t) {
             }
             end+=1;
             strncpy(send_msg, send_buffer + start, end - start);
-            //printf("send mssage_in = %s\n", send_msg);
             sendto(sock_fd, send_msg, end - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
             send_len = send_len - (end -start);
             start = end;
@@ -185,27 +164,9 @@ void* StartReceive(void* t) {
        
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
-         memset(send_buffer, 0, MAX_BUFF_SIZE);
-          memset(send_msg, 0, MAX_PACK_SIZE);
+        memset(send_buffer, 0, MAX_BUFF_SIZE);
+        memset(send_msg, 0, MAX_PACK_SIZE);
     }
     printf("networkprogram ends\n");
     pthread_exit(NULL);
-}
-
-int main() {
-    pthread_t sort_thread;
-    pthread_t network_thread;
-    pthread_t a2d_thread;
-    pthread_t i2c_thread;
-    printf("initiate sort funtions\n");
-    pthread_create(&a2d_thread, NULL, a2d, NULL);
-    pthread_create(&i2c_thread, NULL, Start_i2c_thread, NULL);
-    pthread_create(&sort_thread, NULL, Sorter_startSorting, NULL);
-    pthread_create(&network_thread, NULL, StartReceive, NULL);
-    pthread_join(a2d_thread, NULL);
-    pthread_join(i2c_thread, NULL);
-    pthread_join(sort_thread, NULL);
-    pthread_join(network_thread, NULL);
-    printf("main program ends\n");
-    return 0;
 }

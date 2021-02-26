@@ -21,19 +21,19 @@ static long long count = 0;
 static int next_arr_len;
 static bool sort_flag = true;
 static int* main_arr = NULL;
-// static int* dup_arr = NULL;
 
 void increase_count() {
     pthread_mutex_lock(&count_mutex);
     count++;
     pthread_mutex_unlock(&count_mutex);
 }
-long long get_count() {
-    pthread_mutex_lock(&count_mutex);
-    int val = count;
-    pthread_mutex_unlock(&count_mutex);
-    return val;
-}
+
+// long long get_count() {
+//     pthread_mutex_lock(&count_mutex);
+//     int val = count;
+//     pthread_mutex_unlock(&count_mutex);
+//     return val;
+// }
 
 void set_sort_flag(bool val) {
     pthread_mutex_lock(&sort_flag_mutex);
@@ -79,7 +79,6 @@ int get_arr_len() {
     pthread_mutex_lock(&arr_len_mutex);
     int val = arr_len;
     pthread_mutex_unlock(&arr_len_mutex);
-    // printf("Sortc: array_len = %d\n", val);
     return val;
 }
 
@@ -128,7 +127,6 @@ void sort_thread_task() {
             main_arr[i] = i;
         }
         pthread_mutex_unlock(&array_mutex);
-        // printf("c = %d\n", c);
         //Sorting the array with current length
         while ( get_sort_flag() && compare_arr_len(cur_arr_len)) {
             permutation(main_arr, cur_arr_len);
@@ -147,20 +145,6 @@ void* Sorter_startSorting(void* t) {
     pthread_mutex_init(&count_mutex, NULL);
     sort_thread_task();
     printf("Sorting Alg closing\n");
-    //pthread_create(&sort_thread, NULL, sort_thread_task, NULL);
-    //Testing purposes
-    // sleep(3);
-    // int len;
-    // int * res = Sorter_getArrayData(&len);
-    // long long mycount = Sorter_getNumberArraysSorted();
-    // printf("count = %lld len = %d\n", mycount, len);
-    // Sorter_stopSorting();
-    // int rc = pthread_join(sort_thread, NULL);
-    // if (rc) {
-    //     printf("ERROR; return code from pthread_join() is %d\n", rc);
-    //     exit(-1);
-    // }
-    // printf("Main: completed join with thread having a status\n");
     pthread_mutex_destroy(&array_mutex);
     pthread_mutex_destroy(&next_arr_len_mutex);
     pthread_mutex_destroy(&next_arr_len_mutex);
@@ -184,20 +168,10 @@ int Sorter_getArrayLength(void) {
 int* Sorter_getArrayData(int *length) {
     *length = arr_len;
     int* dup_arr = (int*)malloc(sizeof(int) * arr_len);
-    // int dup_arr[arr_len];
-    // if(first == 0){
-    //     first = 1;
-    // }else{
-    //     // free(dup_arr);
-    //     dup_arr = (int*)realloc(dup_arr, sizeof(int) * arr_len);
-    // }
-
     pthread_mutex_lock(&array_mutex);
     for (int i =0; i<arr_len; i++) {
         dup_arr[i] = main_arr[i];
     }
-    // int dup_arr[arr_len];
-    // memcpy(dup_arr, main_arr, arr_len);
     pthread_mutex_unlock(&array_mutex);
 
     return dup_arr;
@@ -223,5 +197,8 @@ int Sorter_getArray_Value(int n) {
 }
 
 long long Sorter_getNumberArraysSorted(void) {
-    return get_count();
+    pthread_mutex_lock(&count_mutex);
+    int val = count;
+    pthread_mutex_unlock(&count_mutex);
+    return val;
 }
