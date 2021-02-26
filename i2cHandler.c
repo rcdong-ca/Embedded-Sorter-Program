@@ -35,13 +35,13 @@ static pthread_mutex_t exit_flag_mutex;
 static pthread_t display_thread;
 
 
-void set_count(int n) {
+void set_count2(int n) {
     pthread_mutex_lock(&count_mutex);
     count = n; //counts sorted per second
     pthread_mutex_unlock(&count_mutex);
 }
 
-int get_count() {
+int get_count2() {
     pthread_mutex_lock(&count_mutex);
     int val = count;
     pthread_mutex_unlock(&count_mutex);
@@ -55,7 +55,7 @@ void set_exit_flag() {
 }
 int get_exit_flag() {
     pthread_mutex_lock(&exit_flag_mutex);
-    int val = exit_flag_mutex;
+    int val = exit_flag;
     pthread_mutex_unlock(&exit_flag_mutex);
     return val;
 }
@@ -115,17 +115,18 @@ static unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr){
     return value;
 }
 
-void display_number(int i2c_fd) {
-    long long curr_count = get_count();
-    int prev_count = 0;
+void* display_number(void* fd) {
+    int i2c_fd = (int)fd;
+    long long curr_count = get_count2();
+    //int prev_count = 0;
     int left_n = 0;
     int right_n = 0;
     printf("leftn = %d, rightn = %d\n", left_n, right_n);
     clock_t start, end;
-    while(get_exit_flag==1) {
+    while(get_exit_flag()==1) {
         start = clock();
         end = clock();
-        while ( (double)(end-start) <= 1.0) {             //TODO: flag for exiting thread
+        while ( (double)((end - start)/CLOCKS_PER_SEC) <= 1.0) {             //TODO: flag for exiting thread
             if (curr_count > 99) 
                 curr_count = 99;
             left_n = (int)curr_count / 10;
@@ -144,38 +145,51 @@ void display_number(int i2c_fd) {
             sleep(0.005);
             end = clock();
         }
-        prev_count = curr_count;
-        curr_count = get_count() - prev_count;
+        //prev_count = curr_count;
+        curr_count = get_count2();
     }
     pthread_exit(NULL);
 }
 
 int main(){
+    system("config-pin P9_18 i2c");
+    system("config-pin P9_17 i2c");
+    system("echo 61 > /sys/class/gpio/export");
+    system("echo 44 > /sys/class/gpio/export");
+    system("echo out > /sys/class/gpio/gpio61/direction");
+    system("echo out > /sys/class/gpio/gpio44/direction");
     printf("Drive display (assumes GPIO #61 and #44 are output and 1\n");
     int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
     writeI2cReg(i2cFileDesc, REG_DIRA, 0x00); //  
     writeI2cReg(i2cFileDesc, REG_DIRB, 0x00); //sets devuce to be output on all pins
 
-
+    // set_GPIO_pin(44, 1);
+    // set_GPIO_pin(61, 1);
+    // writeI2cReg(i2cFileDesc, REG_OUTA, 0x2A);
+    // writeI2cReg(i2cFileDesc, REG_OUTB, 0x54);
     pthread_mutex_init(&count_mutex, NULL);
-    pthread_mutex_init(&set_exit_flag, NULL);
-    pthread_create(display_thread, NULL, display_number, i2cFileDesc);
+    pthread_mutex_init(&exit_flag_mutex, NULL);
+    pthread_create(&display_thread, NULL, display_number, (void*)i2cFileDesc);
 
     clock_t start, end;
     start = clock();
     end = clock();
-    while (get_exit_flag==1) {
-        set_count(0);
-        curr_count = Sorter_getNumberArraysSorted();
-        set_count(curr_count);
+    int curr_count =1;
+    while (get_exit_flag()==1) {
+        set_count2(0);
+        //curr_count = Sorter_getNumberArraysSorted();
+        set_count2(curr_count);
+        sleep(1);
+        curr_count++;
         end = clock();
-        if ( (double)(end - start) <6)) {
+        if ( (double) ((end - start)/CLOCKS_PER_SEC) >6) {
             set_exit_flag();
         }
     }
+    pthread_join(display_thread, NULL);
     printf("Exiting i2c handler program\n");
     pthread_mutex_destroy(&count_mutex);
-    pthread_mutex_destroy(&set_exit_flag);
+    pthread_mutex_destroy(&exit_flag_mutex);
     // Read a register:
     unsigned char regVal = readI2cReg(i2cFileDesc, REG_OUTA);
     printf("Reg OUT-A = 0x%02x\n", regVal);

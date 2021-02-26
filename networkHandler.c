@@ -145,7 +145,7 @@ void* StartReceive(void* t) {
 
     socklen_t target_struct_len;
     int stop_flag = 0;
-    char* send_msg = NULL;
+    char* send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
     while(stop_flag >-1) { //have a flag set here to cancel this thread when done
         target_struct_len = sizeof(target_addr);
         //printf("waiting for packets on port %d....\n", PORT);
@@ -158,7 +158,6 @@ void* StartReceive(void* t) {
             stop_flag = send_len;
             send_len*=-1;
         }
-        send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
         //design choice: first byte 1 or 0. 1: more packet. 0: last packet
         int end = MAX_PACK_SIZE-1;
         int start = 0;
@@ -180,11 +179,9 @@ void* StartReceive(void* t) {
             printf("Next packet\n!");
         }
         // printf("Sending the last packet\n");
-        strncpy(send_msg, send_buffer + start, start + send_len);
+        strncpy(send_msg, send_buffer + start, start + send_len-1);
        
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
-        free(send_msg);
-        send_msg = NULL;
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
          memset(send_buffer, 0, MAX_BUFF_SIZE);
           memset(send_msg, 0, MAX_PACK_SIZE);
