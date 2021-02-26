@@ -10,10 +10,7 @@
 #include "sort.h"
 #include "a2d.h"
 #include "i2cHandler.h"
-
-#define PORT 12345
-#define MAX_BUFF_SIZE 65000
-#define MAX_PACK_SIZE 1024
+#include "networkHandler.h"
 
 static int* res_arr;
 
@@ -24,26 +21,25 @@ int help_command(char* snd_buffer) {
             get length  -- display lenght of array currently being sorted.\n\
             get array   -- display the full array being sorted.\n\
             get 10      -- display the tenth element of array currently being sorted.\n\
-            stop        -- cause the server program to end.\n\n");
-    // printf("TEST2\n");
+            stop        -- cause the server program to end.\n");
     return strlen(snd_buffer);
 }
 
 int count_command(char* snd_buff) {
-    return sprintf(snd_buff, "%lld\n", Sorter_getNumberArraysSorted() ); //return the length of the long long
+    return sprintf(snd_buff, "%lld", Sorter_getNumberArraysSorted() ); //return the length of the long long
 }
 
 int get_n_command(char* snd_buff, int n) {
     int val = Sorter_getArray_Value(n);
     if (val < 0) {
         return snprintf(snd_buff, MAX_BUFF_SIZE,
-                "Invalid Argument. Must be between 1 and %d (array length).\n", val*-1);
+                "Invalid Argument. Must be between 1 and %d (array length).\n\n", val*-1);
     }
-    return snprintf(snd_buff, MAX_BUFF_SIZE,"Value %d = %d\n", n, val);
+    return snprintf(snd_buff, MAX_BUFF_SIZE,"Value %d = %d", n, val);
 }
 
 int get_length_command(char* snd_buff) {
-    return sprintf(snd_buff, "%d\n", Sorter_getArrayLength() ) ;
+    return sprintf(snd_buff, "%d", Sorter_getArrayLength() ) ;
 }
 int get_array_command(char* snd_buff) {
     int res_len =0;
@@ -91,13 +87,13 @@ int handle_packet(char recv_buffer[], char snd_buffer[], int msg_len) {
         if (msg_len < 5 && strncmp(recv_buffer+3, " ", 1)!=0 && ( 
             strncmp(recv_buffer+msg_len-1, "\n", 1)!=0 || isdigit(recv_buffer[msg_len-1])<1)) {
             //printf("Invalid command: %s\n", recv_buffer);
-            return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help\n");
+            return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help");
             
         }
         //almost valid, lets check that after it is all digits
         for (int i =4 ; i<msg_len-1; i++) {
             if (isdigit(recv_buffer[i])<1)  {
-                return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help\n");
+                return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help");
             }
         }
         //it is a valid command:
@@ -160,9 +156,16 @@ void* StartReceive(void* t) {
             printf("Next packet\n!");
         }
         // printf("Sending the last packet\n");
+
+        // SOMETHING WRONG HERE 
+        // SOMETIMES PRINTS LENGTH WITH THE 
+        // LAST CHARACTER CUT OFF ON SCREENS SO 2055 PRINTS AS 205
+        // CHECK START END AND SEND_LEN LOGIC AGAIN!!
+        printf("start: %d, end: %d, send_len: %d\n", start, end, send_len);
         strncpy(send_msg, send_buffer + start, start + send_len-1);
-       
+
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
+        sendto(sock_fd, "\n", 2, 0, (struct sockaddr *)&target_addr, target_struct_len);
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
         memset(send_buffer, 0, MAX_BUFF_SIZE);
         memset(send_msg, 0, MAX_PACK_SIZE);
