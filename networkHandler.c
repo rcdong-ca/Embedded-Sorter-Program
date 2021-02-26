@@ -9,6 +9,7 @@
 
 #include "sort.h"
 #include "a2d.h"
+#include "i2cHandler.h"
 
 #define PORT 12345
 #define MAX_BUFF_SIZE 65000
@@ -70,6 +71,7 @@ int get_array_command(char* snd_buff) {
 int stop_command(char* snd_buff) {
     Sorter_stopSorting();
     stopA2DThread();
+    stop_i2c();
     free(res_arr);
     res_arr = NULL;
     return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating");
@@ -194,11 +196,14 @@ int main() {
     pthread_t sort_thread;
     pthread_t network_thread;
     pthread_t a2d_thread;
+    pthread_t i2c_thread;
     printf("initiate sort funtions\n");
     pthread_create(&a2d_thread, NULL, a2d, NULL);
+    pthread_create(&i2c_thread, NULL, Start_i2c_thread, NULL);
     pthread_create(&sort_thread, NULL, Sorter_startSorting, NULL);
     pthread_create(&network_thread, NULL, StartReceive, NULL);
     pthread_join(a2d_thread, NULL);
+    pthread_join(i2c_thread, NULL);
     pthread_join(sort_thread, NULL);
     pthread_join(network_thread, NULL);
     printf("main program ends\n");

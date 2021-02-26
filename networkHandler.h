@@ -7,6 +7,6 @@
 
 
 void* StartReceive(void* t);
-
+void stop_I2c();
 
 #endif

@@ -122,8 +122,8 @@ void sort_thread_task() {
     while (get_sort_flag() ) {
         set_arr_len();
         int cur_arr_len = get_arr_len();
-        main_arr = (int*) malloc(sizeof(int) * cur_arr_len);
         pthread_mutex_lock(&array_mutex);   //initialize the arrays
+        main_arr = (int*) malloc(sizeof(int) * cur_arr_len);
         for (int i =0; i< cur_arr_len; i++) {
             main_arr[i] = i;
         }
