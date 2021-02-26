@@ -7,7 +7,7 @@
 #include "a2d.h"
 
 #define MAXLEN 2048
-static int first =0;
+// static int first =0;
 
 //TODO add mutex for all shared variables
 
@@ -21,7 +21,7 @@ static long long count = 0;
 static int next_arr_len;
 static bool sort_flag = true;
 static int* main_arr = NULL;
-static int* dup_arr = NULL;
+// static int* dup_arr = NULL;
 
 void increase_count() {
     pthread_mutex_lock(&count_mutex);
@@ -183,18 +183,21 @@ int Sorter_getArrayLength(void) {
 
 int* Sorter_getArrayData(int *length) {
     *length = arr_len;
-    dup_arr = (int*)malloc(sizeof(int) * arr_len);
-    if(first == 0){
-        first = 1;
-    }else{
-        // free(dup_arr);
-        dup_arr = (int*)realloc(dup_arr, sizeof(int) * arr_len);
-    }
+    int* dup_arr = (int*)malloc(sizeof(int) * arr_len);
+    // int dup_arr[arr_len];
+    // if(first == 0){
+    //     first = 1;
+    // }else{
+    //     // free(dup_arr);
+    //     dup_arr = (int*)realloc(dup_arr, sizeof(int) * arr_len);
+    // }
 
     pthread_mutex_lock(&array_mutex);
     for (int i =0; i<arr_len; i++) {
         dup_arr[i] = main_arr[i];
     }
+    // int dup_arr[arr_len];
+    // memcpy(dup_arr, main_arr, arr_len);
     pthread_mutex_unlock(&array_mutex);
 
     return dup_arr;

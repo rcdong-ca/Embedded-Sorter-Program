@@ -14,6 +14,8 @@
 #define MAX_BUFF_SIZE 65000
 #define MAX_PACK_SIZE 1024
 
+static int* res_arr;
+
 int help_command(char* snd_buffer) {
     printf("TEST1\n");
     sprintf(snd_buffer, "Accepted command examples:\
@@ -44,7 +46,7 @@ int get_length_command(char* snd_buff) {
 }
 int get_array_command(char* snd_buff) {
     int res_len =0;
-    int* res_arr = Sorter_getArrayData(&res_len);
+    res_arr = Sorter_getArrayData(&res_len);
     // printf("res_len =%d \n", res_len);
     int index = 0;
     int i=0;
@@ -60,14 +62,16 @@ int get_array_command(char* snd_buff) {
     // free( (int**)res_arr );
     
     // res_arr = NULL;
-    free(res_arr);
-    res_arr = NULL;
+    // free(res_arr);
+    // res_arr = NULL;
     return index; 
 }
 
 int stop_command(char* snd_buff) {
     Sorter_stopSorting();
     stopA2DThread();
+    free(res_arr);
+    res_arr = NULL;
     return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating");
 }
 
@@ -144,13 +148,12 @@ void* StartReceive(void* t) {
     char* send_msg = (char*) malloc(sizeof(char)*MAX_PACK_SIZE);
     while(stop_flag >-1) { //have a flag set here to cancel this thread when done
         target_struct_len = sizeof(target_addr);
-        printf("waiting for packets on port %d....\n", PORT);
+        //printf("waiting for packets on port %d....\n", PORT);
         int msg_len = recvfrom(sock_fd, (char *)recv_buffer, MAX_BUFF_SIZE, 0, 
                 (struct sockaddr*)&target_addr, &target_struct_len);
         //printf("msg received: %s:\n ", recv_buffer);
-        printf("msg_len = %d\n", msg_len);
+        //printf("msg_len = %d\n", msg_len);
         int send_len = handle_packet(recv_buffer,send_buffer, msg_len);
-        // printf("test3\n");
         if (send_len <0) {
             stop_flag = send_len;
             send_len*=-1;
@@ -160,13 +163,15 @@ void* StartReceive(void* t) {
         int start = 0;
 
         printf("send buffer = %s\n", send_buffer);
+
+        //TODO: line 171 valgrind errors, mostl likely math wron
         while (send_len > MAX_PACK_SIZE) { //only fthe get array command
             while (send_buffer[end]!=',' && end!=start) {       //end of number
                 end--;
             }
             end+=1;
             strncpy(send_msg, send_buffer + start, end - start);
-            printf("send mssage_in = %s\n", send_msg);
+            //printf("send mssage_in = %s\n", send_msg);
             sendto(sock_fd, send_msg, end - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
             send_len = send_len - (end -start);
             start = end;
@@ -175,7 +180,7 @@ void* StartReceive(void* t) {
         }
         // printf("Sending the last packet\n");
         strncpy(send_msg, send_buffer + start, start + send_len);
-        // printf("send msg %s\n",send_msg);
+       
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
 
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
