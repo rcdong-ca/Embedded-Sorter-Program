@@ -117,11 +117,11 @@ void* display_number(void* fd) {
     // printf("leftn = %d, rightn = %d\n", left_n, right_n);
     while(get_exit_flag()==1) {
         start = time(NULL);
-        while ( time(NULL) - start < 5.0) {             //TODO: flag for exiting thread
-            if (curr_count > 99) 
-                curr_count = 99;
-            left_n = (int)curr_count / 10;
-            right_n = (int)curr_count%10;
+        while ( time(NULL) - start < 1.0) {             //TODO: flag for exiting thread
+            if (temp > 99) 
+                temp = 99;
+            left_n = (int)temp / 10;
+            right_n = (int)temp%10;
             set_GPIO_pin(44, 0);
             set_GPIO_pin(61, 0);
             writeI2cReg(i2c_fd,REG_OUTA, bot_num[left_n] );
@@ -136,16 +136,11 @@ void* display_number(void* fd) {
             sleep(0.001);
             //printf("time = %lf\n", (double)((end - start)/CLOCKS_PER_SEC));
         }
-        // prev_count = curr_count;
-        // curr_count = get_count2() - prev_count;
-        if(prev_count > get_count2()){
-            prev_count = temp;
-            curr_count = 0;
-        }else{
-            prev_count = temp;
-            curr_count = get_count2() - prev_count;
-        }
-        printf("currr_count = %d, prev_count = %d\n", (int)curr_count, (int)prev_count);
+        int val = get_count2();
+        prev_count = curr_count;
+        temp = val - prev_count;
+        curr_count = val;
+        printf("currr_count = %d, prev_count = %d diff = %d\n", (int)curr_count, (int)prev_count, (int)temp);
     }
     pthread_exit(NULL);
 }
