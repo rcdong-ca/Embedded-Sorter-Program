@@ -85,8 +85,8 @@ int handle_packet(char recv_buffer[], char snd_buffer[], int msg_len) {
     }
     else {
         //check if the string is longer than 5 characters
-        printf("get b command\n");
-        printf("val = %d\n",strncmp(recv_buffer, "get",3));
+        // printf("get b command\n");
+        // printf("val = %d\n",strncmp(recv_buffer, "get",3));
         if (msg_len < 5 || strncmp(recv_buffer+3, " ", 1)!=0 || strncmp(recv_buffer, "get",3)!=0 ) {
             //printf("Invalid command: %s\n", recv_buffer);
             return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help");
