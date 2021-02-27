@@ -39,7 +39,7 @@ int get_n_command(char* snd_buff, int n) {
 }
 
 int get_length_command(char* snd_buff) {
-    return sprintf(snd_buff, "%d", Sorter_getArrayLength() ) ;
+    return sprintf(snd_buff, "%d", Sorter_getArrayLength());
 }
 int get_array_command(char* snd_buff) {
     int res_len =0;
@@ -157,12 +157,7 @@ void* StartReceive(void* t) {
         }
         // printf("Sending the last packet\n");
 
-        // SOMETHING WRONG HERE 
-        // SOMETIMES PRINTS LENGTH WITH THE 
-        // LAST CHARACTER CUT OFF ON SCREENS SO 2055 PRINTS AS 205
-        // CHECK START END AND SEND_LEN LOGIC AGAIN!!
-        printf("start: %d, end: %d, send_len: %d\n", start, end, send_len);
-        strncpy(send_msg, send_buffer + start, start + send_len-1);
+        strncpy(send_msg, send_buffer + start, start + send_len);
 
         sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
         sendto(sock_fd, "\n", 2, 0, (struct sockaddr *)&target_addr, target_struct_len);
