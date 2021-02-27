@@ -28,5 +28,5 @@ int main() {
     pthread_join(sort_thread, NULL);
     pthread_join(network_thread, NULL);
     printf("main program ends\n");
-    return 0;
+    pthread_exit(NULL);
 }

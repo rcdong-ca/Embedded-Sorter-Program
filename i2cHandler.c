@@ -134,8 +134,10 @@ void* display_number(void* fd) {
 void configure_pin(void){
     system("config-pin P9_18 i2c");
     system("config-pin P9_17 i2c");
-    system("echo 61 > /sys/class/gpio/export");
-    system("echo 44 > /sys/class/gpio/export");
+    
+        system("echo 61 > /sys/class/gpio/export");
+        system("echo 44 > /sys/class/gpio/export");
+    
     system("echo out > /sys/class/gpio/gpio61/direction");
     system("echo out > /sys/class/gpio/gpio44/direction");
 }

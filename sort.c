@@ -109,6 +109,8 @@ void BubbleSort(int arr[], int len) {
 void permutation(int* arr, int len) {
     pthread_mutex_lock(&array_mutex);
     //requires only one so just shuffle the array
+    time_t t;
+    srand((unsigned)time(&t));
     for (int i =0; i< len-1; i++) {
         int n = i + rand() / (RAND_MAX / (len-1-i)+1 ); //FISH-yates shuffle
         swap(arr, i, n);
@@ -121,6 +123,8 @@ void sort_thread_task() {
     while (get_sort_flag() ) {
         set_arr_len();
         int cur_arr_len = get_arr_len();
+        if (cur_arr_len==0)
+            continue; 
         pthread_mutex_lock(&array_mutex);   //initialize the arrays
         main_arr = (int*) malloc(sizeof(int) * cur_arr_len);
         for (int i =0; i< cur_arr_len; i++) {
@@ -133,13 +137,16 @@ void sort_thread_task() {
             BubbleSort(main_arr, cur_arr_len);
             increase_count();
         } 
+        pthread_mutex_lock(&array_mutex);
         free(main_arr);
-        main_arr = NULL; 
+        main_arr = NULL;
+        pthread_mutex_unlock(&array_mutex); 
     }
 }
 void* Sorter_startSorting(void* t) {
     next_arr_len = Sorter_getArrayLength(); //TO CHANGE
     pthread_mutex_init(&array_mutex, NULL);
+    pthread_mutex_init(&arr_len_mutex, NULL);
     pthread_mutex_init(&next_arr_len_mutex, NULL);
     pthread_mutex_init(&sort_flag_mutex, NULL);
     pthread_mutex_init(&count_mutex, NULL);
@@ -147,7 +154,7 @@ void* Sorter_startSorting(void* t) {
     printf("Sorting Alg closing\n");
     pthread_mutex_destroy(&array_mutex);
     pthread_mutex_destroy(&next_arr_len_mutex);
-    pthread_mutex_destroy(&next_arr_len_mutex);
+    pthread_mutex_destroy(&arr_len_mutex);
     pthread_mutex_destroy(&sort_flag_mutex);
     pthread_mutex_destroy(&count_mutex);
     pthread_exit(NULL);
@@ -166,10 +173,12 @@ int Sorter_getArrayLength(void) {
 }
 
 int* Sorter_getArrayData(int *length) {
+    pthread_mutex_lock(&arr_len_mutex);
     *length = arr_len;
-    int* dup_arr = (int*)malloc(sizeof(int) * arr_len);
+    pthread_mutex_unlock(&arr_len_mutex);
+    int* dup_arr = (int*)malloc(sizeof(int) * *length);
     pthread_mutex_lock(&array_mutex);
-    for (int i =0; i<arr_len; i++) {
+    for (int i =0; i<*length; i++) {
         dup_arr[i] = main_arr[i];
     }
     pthread_mutex_unlock(&array_mutex);

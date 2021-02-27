@@ -56,14 +56,15 @@ void* a2d(void* x){
         endThread = getEndThread();
     }
     printf("Ending A2D thread\n");
-    pthread_exit(NULL);
-    return NULL;    
+
 
     pthread_mutex_destroy(&array_size_mutex);
     pthread_mutex_destroy(&end_thread_mutex);
     pthread_mutex_destroy(&voltage_mutex);
     pthread_mutex_destroy(&file_mutex);
     pthread_mutex_destroy(&read_mutex);
+    pthread_exit(NULL);
+    return NULL;    
 }
 
 // void* startThread(void* id){

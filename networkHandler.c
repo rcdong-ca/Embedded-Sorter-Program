@@ -12,7 +12,7 @@
 #include "i2cHandler.h"
 #include "networkHandler.h"
 
-static int* res_arr;
+//static int* res_arr;
 
 int help_command(char* snd_buffer) {
     printf("TEST1\n");
@@ -43,7 +43,7 @@ int get_length_command(char* snd_buff) {
 }
 int get_array_command(char* snd_buff) {
     int res_len =0;
-    res_arr = Sorter_getArrayData(&res_len);
+    int* res_arr = Sorter_getArrayData(&res_len);
     // printf("res_len =%d \n", res_len);
     int index = 0;
     int i=0;
@@ -52,6 +52,7 @@ int get_array_command(char* snd_buff) {
     }
     index+=sprintf(snd_buff + index, "%d", res_arr[i]);
     printf("res_len = %d   index = %d\n", res_len, index);
+    free(res_arr);
     return index; 
 }
 
@@ -59,8 +60,8 @@ int stop_command(char* snd_buff) {
     Sorter_stopSorting();
     stopA2DThread();
     stop_i2c();
-    free(res_arr);
-    res_arr = NULL;
+    //free(res_arr);
+    //res_arr = NULL;
     return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating\n");
 }
 
@@ -84,9 +85,12 @@ int handle_packet(char recv_buffer[], char snd_buffer[], int msg_len) {
     }
     else {
         //check if the string is longer than 5 characters
-        if (msg_len < 5 && strncmp(recv_buffer+3, " ", 1)!=0 && ( 
+        printf("get b command\n");
+        printf("val = %d\n",strncmp(recv_buffer, "get",3));
+        if (msg_len < 5 && strncmp(recv_buffer+3, " ", 1)!=0 && strncmp(recv_buffer, "get",3)!=0 && ( 
             strncmp(recv_buffer+msg_len-1, "\n", 1)!=0 || isdigit(recv_buffer[msg_len-1])<1)) {
             //printf("Invalid command: %s\n", recv_buffer);
+            printf("hellp\n");
             return snprintf(snd_buffer, MAX_BUFF_SIZE, "Invalid Command, please type help");
             
         }
@@ -136,7 +140,6 @@ void* StartReceive(void* t) {
             stop_flag = send_len;
             send_len*=-1;
         }
-        //design choice: first byte 1 or 0. 1: more packet. 0: last packet
         int end = MAX_PACK_SIZE-1;
         int start = 0;
 
@@ -150,21 +153,25 @@ void* StartReceive(void* t) {
             end+=1;
             strncpy(send_msg, send_buffer + start, end - start);
             sendto(sock_fd, send_msg, end - start, 0, (struct sockaddr *)&target_addr, target_struct_len);
+            memset(send_msg, 0, MAX_PACK_SIZE);
             send_len = send_len - (end -start);
             start = end;
             end = start + MAX_PACK_SIZE-1;
-            printf("Next packet\n!");
+            //printf("Next packet\n!");
         }
         // printf("Sending the last packet\n");
 
-        strncpy(send_msg, send_buffer + start, start + send_len);
+        strncpy(send_msg, send_buffer + start, send_len);
 
-        sendto(sock_fd, send_msg, end-start, 0, (struct sockaddr *)&target_addr, target_struct_len);
-        sendto(sock_fd, "\n", 2, 0, (struct sockaddr *)&target_addr, target_struct_len);
+        sendto(sock_fd, send_msg, send_len, 0, (struct sockaddr *)&target_addr, target_struct_len);
+        sendto(sock_fd, "\n", 1, 0, (struct sockaddr *)&target_addr, target_struct_len);
         memset(recv_buffer, 0, MAX_BUFF_SIZE);
         memset(send_buffer, 0, MAX_BUFF_SIZE);
         memset(send_msg, 0, MAX_PACK_SIZE);
     }
+    free(send_msg);
+    send_msg = NULL;
+    close(sock_fd);
     printf("networkprogram ends\n");
     pthread_exit(NULL);
 }
