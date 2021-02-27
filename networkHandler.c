@@ -59,8 +59,10 @@ int stop_command(char* snd_buff) {
     Sorter_stopSorting();
     stopA2DThread();
     stop_i2c();
-    free(res_arr);
-    res_arr = NULL;
+    if (res_arr != NULL){
+        free(res_arr);
+        res_arr = NULL;
+    }
     return -1 * snprintf(snd_buff, MAX_BUFF_SIZE, "Program Terminating\n");
 }
 
