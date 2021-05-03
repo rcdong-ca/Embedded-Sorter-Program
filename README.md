@@ -19,3 +19,7 @@ The accepted commands are :
 4. get array  -- display the full array being sorted
 5. get #      -- # = number, display the # ekenebt if array currently being sorted
 6. stop       -- cause the server program to end
+
+
+Method of execution:
+First have a connection with your target from your host machine. Make sure your host has the ARM cross compiler, and change the path in the makefile of the resulting exectuable.
